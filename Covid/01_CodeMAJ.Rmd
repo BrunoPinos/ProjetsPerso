@@ -1,0 +1,26 @@
+---
+title: "Untitled"
+author: "brunop31"
+date: "27/10/2020"
+output: html_document
+---
+
+```{r}
+library(dplyr)
+
+region<-read.csv("region.csv", encoding = "UTF-8", sep = ",", header = TRUE)%>%
+  rename("dep" = "num_dep")
+
+region$dep<-region$dep%>%as.vector()
+region$dep[1:9]<-c(1:9)
+region$dep<-region$dep%>%as.factor()
+
+lit_rea<-read.csv("lit_rea.csv", encoding = "UTF-8", sep = ",", header = TRUE)%>%
+  select("dep", "nbre_lit")
+
+pop<-read.csv("pop_total_dep.csv", encoding = "UTF-8", sep = ",", header = TRUE)
+
+dep_stats<-full_join(region,lit_rea)%>%full_join(pop)
+
+write.csv(dep_stats, file = "dep_stats.csv", row.names = F)
+```

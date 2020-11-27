@@ -1,0 +1,77 @@
+---
+ctitle: "Untitled"
+author: "brunop31"
+date: "07/10/2020"
+output: html_document
+---
+```{r}
+library(dplyr)
+library("lubridate")
+library(ggplot2)
+library(zoo)
+
+download.file(
+  url='https://www.data.gouv.fr/fr/datasets/r/63352e38-d353-4b54-bfd1-f1b3ee1cabd7', 
+                         destfile ="./Data/covid19.csv")
+
+a<-read.csv("./Data/covid19.csv", encoding = "UTF-8", sep = ";", header = TRUE)
+
+a<-filter(a, dep != "")
+
+a$jour<-as.Date(a$jour)
+
+a<-a%>%filter(sexe == 0)%>%select(-"sexe")
+
+b<-select(a, dep, jour, dc, rad)
+
+b$jour<-b$jour+1
+
+b<-b%>%rename("dcc1" = "dc", "radc1" = "rad")
+
+a<-a%>%left_join(b)
+
+a[is.na(a)]<-0
+
+a<-a%>%rename("dcc" = "dc", "radc" = "rad")
+
+af<-a%>%filter(dcc<dcc1)
+
+af$dcc1<-af$dcc
+
+a<-a%>%filter(dcc>= dcc1)
+
+a<-rbind(a,af)
+
+af<-a%>%filter(radc<radc1)
+
+af$radc1<-af$radc
+
+a<-a%>%filter(radc>= radc1)
+
+a<-rbind(a,af)
+
+a$dc<-a$dcc-a$dcc1
+a$rad<-a$radc-a$radc1
+
+a<-a%>%select(-"dcc1",-"radc1")
+
+a$dep<-as.vector(a$dep)
+
+a$dep[a$dep=="01"]<-1
+a$dep[a$dep=="02"]<-2
+a$dep[a$dep=="03"]<-3
+a$dep[a$dep=="04"]<-4
+a$dep[a$dep=="05"]<-5
+a$dep[a$dep=="06"]<-6
+a$dep[a$dep=="07"]<-7
+a$dep[a$dep=="08"]<-8
+a$dep[a$dep=="09"]<-9
+
+a[is.na(a)]
+max(a$jour)
+
+write.csv(a, file = "./Data/covid_stats.csv", row.names = F)
+```
+
+
+
